@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock In/Out</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2>Clock In/Out</h2>
+    <button onclick="clockIn()">Clock In</button>
+    <button onclick="clockOut()">Clock Out</button>
+    <table id="timeTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="exportCSV()">Export to CSV</button>
+
+    <script>
+        function formatDate(date) {
+            return date.getDate().toString().padStart(2, '0') + '-' +
+                   (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                   date.getFullYear();
+        }
+
+        function clockIn() {
+            const timeInput = prompt("Please enter your clock-in time (hh:mm)");
+            if (!timeInput) {
+                alert("You must enter a time to clock in.");
+                return;
+            }
+            const now = new Date();
+            const date = formatDate(now);
+            const time = timeInput;
+
+            const table = document.getElementById('timeTable').getElementsByTagName('tbody')[0];
+            const rows = table.getElementsByTagName('tr');
+
+            for (let row of rows) {
+                if (row.cells[0].textContent === date) {
+                    alert("You have already clocked in for today.");
+                    return;
+                }
+            }
+
+            const newRow = table.insertRow();
+            const dateCell = newRow.insertCell(0);
+            const timeInCell = newRow.insertCell(1);
+            const timeOutCell = newRow.insertCell(2);
+
+            dateCell.textContent = date;
+            timeInCell.textContent = time;
+            timeOutCell.textContent = "-";
+        }
+
+        function clockOut() {
+            const now = new Date();
+            const date = formatDate(now);
+            const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            const table = document.getElementById('timeTable').getElementsByTagName('tbody')[0];
+            const rows = table.getElementsByTagName('tr');
+
+            for (let row of rows) {
+                if (row.cells[0].textContent === date) {
+                    if (row.cells[2].textContent !== "-") {
+                        alert("You have already clocked out for today.");
+                        return;
+                    }
+                    row.cells[2].textContent = time;
+                    return;
+                }
+            }
+            alert("Please clock in first.");
+        }
+
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Date,Time In,Time Out\n";
+            document.querySelectorAll("#timeTable tbody tr").forEach(row => {
+                let cols = row.querySelectorAll("td");
+                let rowData = [];
+                cols.forEach(col => rowData.push(col.textContent));
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "clock_times.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+    </script>
+</body>
+</html>
